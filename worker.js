@@ -161,8 +161,8 @@ async function resetOutbox(req, env, id, act) {
   return json({ error: "Not found" }, 404);
 }
 
-// The GitHub Pages copy of the page (https://amy-brooks-fa.github.io/daybook-calendar/?k=<KEY>) calls this API from another origin.
-const CORS_ORIGINS = ["https://amy-brooks-fa.github.io"];
+// The GitHub Pages copy of the page (https://mosheder50.github.io/daybook-calendar/?k=<KEY>, owner's account since 2026-11-26; old copy amy-brooks-fa.github.io) calls this API from another origin.
+const CORS_ORIGINS = ["https://mosheder50.github.io", "https://amy-brooks-fa.github.io"];
 
 export default {
   async fetch(req, env) {

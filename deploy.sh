@@ -1,7 +1,7 @@
 #!/bin/sh
 # Deploys worker.js + page.html to Cloudflare (worker "calendar", D1 binding DB, KEY var),
 # to Cloudflare Pages (daybook-office), and pushes the public files to GitHub
-# (repo amy-brooks-fa/daybook-calendar, GitHub Pages https://amy-brooks-fa.github.io/daybook-calendar/?k=<KEY>).
+# (repo mosheder50/daybook-calendar (owner's account since 2026-11-26; was amy-brooks-fa), GitHub Pages https://mosheder50.github.io/daybook-calendar/?k=<KEY>).
 T=$(grep -o 'cfut_[A-Za-z0-9_-]*' ~/notes/accounts/cloudflare.md); A=8bcd93500375c6b4d6b955453b34953e
 KEY=$(cat "$(dirname "$0")/key.txt")
 # 2026-11-24 sign-in: auth.env (private, never pushed) holds AUTH_USER, AUTH_SALT, AUTH_HASH=sha256(salt+password), AUTH_SECRET (token signing).
@@ -40,8 +40,8 @@ PY
 # GitHub (2026-11-22): copy ONLY the public files into the repo folder, refuse to push if the access key,
 # a Cloudflare/GitHub token or any client name is in them, then commit and push. GitHub Pages rebuilds in ~1 minute.
 R=$HOME/agent/results/daybook-calendar-repo
-GT=$(grep -o 'ghp_[A-Za-z0-9]*' ~/notes/accounts/github.md)
-[ -d "$R/.git" ] || { git clone -q "https://x-access-token:$GT@github.com/amy-brooks-fa/daybook-calendar.git" "$R" 2>&1 | grep -v "empty repository"; git -C "$R" remote set-url origin https://github.com/amy-brooks-fa/daybook-calendar.git; }
+GT=$(grep -o 'ghp_[A-Za-z0-9]*' ~/notes/accounts/github-owner.md | tail -1)   # mosheder50 token (was Amy's, accounts/github.md)
+[ -d "$R/.git" ] || { git clone -q "https://x-access-token:$GT@github.com/mosheder50/daybook-calendar.git" "$R" 2>&1 | grep -v "empty repository"; git -C "$R" remote set-url origin https://github.com/mosheder50/daybook-calendar.git; }
 git -C "$R" config user.name "Amy Brooks"; git -C "$R" config user.email "amy.brooks@fromassistant.com"
 cp page.html "$R/index.html"; cp page.html worker.js deploy.sh gen-holidays.mjs README.md "$R/"; touch "$R/.nojekyll"
 curl -s -H "Authorization: Bearer $(mint "$AUTH_USER" "$AUTH_SECRET" "$(gen b0e84bb7-47ac-46ec-8d67-a3d607cb1949)")" "https://calendar.daybook-amy.workers.dev/c/$KEY/api/clients" | python3 -c '
@@ -56,6 +56,6 @@ print("\n".join(sorted(out)))' > /tmp/gh-names.txt
 [ -s /tmp/gh-names.txt ] || { echo "GITHUB: could not read the client list for the name check - NOT pushed"; exit 1; }
 BAD=$(cd "$R" && { grep -rIl --exclude-dir=.git -F "$KEY" .; grep -rIlE --exclude-dir=.git 'cfut_[A-Za-z0-9_-]{20,}|ghp_[A-Za-z0-9]{30,}' .; grep -rIlw --exclude-dir=.git -F -f /tmp/gh-names.txt .; grep -rIl --exclude-dir=.git -F -e "$AUTH_SALT" -e "$AUTH_HASH" -e "$AUTH_SECRET" -e "$RELAY_SECRET" -e "$RDIG" .; OU=$(cat "$HOME"/agent/results/*/auth.env | sed -n 's/^AUTH_USER=//p' | grep -vx "$AUTH_USER"); [ -n "$OU" ] && echo "$OU" | grep -rIli --exclude-dir=.git -F -f - .; ls -a | grep -E '^backup|^bak-|key\.txt|wrangler\.toml|auth\.env|relay\.env'; } | sort -u)
 [ -z "$BAD" ] || { echo "GITHUB: key/token/client name/private file found in: $BAD - NOT pushed"; exit 1; }
-cd "$R" && git add -A && { git diff --cached --quiet && echo "GITHUB: no changes"; } || { git commit -q -m "Update $(date '+%Y-%m-%d %H:%M %Z')" && git push -q "https://x-access-token:$GT@github.com/amy-brooks-fa/daybook-calendar.git" HEAD:main 2>&1 | sed "s/$GT/***/g"; echo "GITHUB: pushed $(git rev-parse --short HEAD)"; }
-# 2026-11-24: same files also to repo amy-brooks-fa/sarah (https://amy-brooks-fa.github.io/sarah/?k=<KEY>)
-git -C "$R" push -q "https://x-access-token:$GT@github.com/amy-brooks-fa/sarah.git" HEAD:main 2>&1 | sed "s/$GT/***/g"; echo "GITHUB sarah: pushed $(git -C "$R" rev-parse --short HEAD)"
+cd "$R" && git add -A && { git diff --cached --quiet && echo "GITHUB: no changes"; } || { git commit -q -m "Update $(date '+%Y-%m-%d %H:%M %Z')" && git push -q "https://x-access-token:$GT@github.com/mosheder50/daybook-calendar.git" HEAD:main 2>&1 | sed "s/$GT/***/g"; echo "GITHUB: pushed $(git rev-parse --short HEAD)"; }
+# 2026-11-24: same files also to repo mosheder50/sarah (https://mosheder50.github.io/sarah/?k=<KEY>)
+git -C "$R" push -q "https://x-access-token:$GT@github.com/mosheder50/sarah.git" HEAD:main 2>&1 | sed "s/$GT/***/g"; echo "GITHUB sarah: pushed $(git -C "$R" rev-parse --short HEAD)"
